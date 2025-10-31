@@ -1,0 +1,312 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})
+
+// Auth API
+export const authAPI = {
+  async signUp(email, password, userData) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData
+      }
+    })
+    if (error) throw error
+    return data
+  },
+
+  async signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    if (error) throw error
+    return data
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+  },
+
+  async getSession() {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) throw error
+    return session
+  },
+
+  async getUser() {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) throw error
+    return user
+  }
+}
+
+// Issues API
+export const issuesAPI = {
+  async getIssues(filters = {}) {
+    let query = supabase
+      .from('issues')
+      .select(`
+        *,
+        citizens(name),
+        votes(vote_type),
+        feedbacks(count)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (filters.status) {
+      query = query.eq('status', filters.status)
+    }
+    if (filters.category) {
+      query = query.eq('category', filters.category)
+    }
+    if (filters.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+
+  async getIssue(id) {
+    const { data, error } = await supabase
+      .from('issues')
+      .select(`
+        *,
+        citizens(name),
+        votes(vote_type, citizen_id),
+        feedbacks(*, citizens(name))
+      `)
+      .eq('issue_id', id)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async createIssue(issueData) {
+    const { data, error } = await supabase
+      .from('issues')
+      .insert([issueData])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async updateIssueStatus(id, status) {
+    const { data, error } = await supabase
+      .from('issues')
+      .update({ status })
+      .eq('issue_id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async getUserIssues(userId) {
+    const { data, error } = await supabase
+      .from('issues')
+      .select('*')
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+}
+
+// Votes API
+export const votesAPI = {
+  async castVote(issueId, voteType) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Check if user already voted
+    const { data: existingVote } = await supabase
+      .from('votes')
+      .select('*')
+      .eq('issue_id', issueId)
+      .eq('citizen_id', user.id)
+      .single()
+
+    if (existingVote) {
+      // Update existing vote
+      const { data, error } = await supabase
+        .from('votes')
+        .update({ vote_type: voteType })
+        .eq('vote_id', existingVote.vote_id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } else {
+      // Create new vote
+      const { data, error } = await supabase
+        .from('votes')
+        .insert([{
+          issue_id: issueId,
+          citizen_id: user.id,
+          vote_type: voteType
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    }
+  },
+
+  async getVoteCounts(issueId) {
+    const { data, error } = await supabase
+      .from('votes')
+      .select('vote_type')
+      .eq('issue_id', issueId)
+
+    if (error) throw error
+
+    const upvotes = data.filter(vote => vote.vote_type === 'Upvote').length
+    const downvotes = data.filter(vote => vote.vote_type === 'Downvote').length
+
+    return {
+      upvotes,
+      downvotes,
+      total_votes: upvotes + downvotes
+    }
+  },
+
+  async getUserVote(issueId, userId) {
+    const { data, error } = await supabase
+      .from('votes')
+      .select('vote_type')
+      .eq('issue_id', issueId)
+      .eq('citizen_id', userId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') throw error
+    return data?.vote_type || null
+  }
+}
+
+// Feedbacks API
+export const feedbacksAPI = {
+  async addFeedback(issueId, message) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error } = await supabase
+      .from('feedbacks')
+      .insert([{
+        issue_id: issueId,
+        citizen_id: user.id,
+        message
+      }])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async getIssueFeedbacks(issueId) {
+    const { data, error } = await supabase
+      .from('feedbacks')
+      .select(`
+        *,
+        citizens(name)
+      `)
+      .eq('issue_id', issueId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data
+  }
+}
+
+// Storage API
+export const storageAPI = {
+  async uploadImage(file, bucket = 'issue_images') {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file)
+
+    if (error) throw error
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName)
+
+    return publicUrl
+  },
+
+  async deleteImage(filePath, bucket = 'issue_images') {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath])
+
+    if (error) throw error
+  }
+}
+
+// Citizens API
+export const citizensAPI = {
+  async createCitizenProfile(userData) {
+    const { data, error } = await supabase
+      .from('citizens')
+      .insert([userData])
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async getCitizenProfile(userId) {
+    const { data, error } = await supabase
+      .from('citizens')
+      .select('*')
+      .eq('citizen_id', userId)
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
+  async updateCitizenProfile(userId, updates) {
+    const { data, error } = await supabase
+      .from('citizens')
+      .update(updates)
+      .eq('citizen_id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+}
