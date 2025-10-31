@@ -15,6 +15,47 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Helper function to ensure citizen profile exists
+async function ensureCitizenProfile() {
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) {
+    throw new Error('User not authenticated')
+  }
+
+  try {
+    // Check if profile exists
+    const { data: existingProfile, error: profileCheckError } = await supabase
+      .from('citizens')
+      .select('citizen_id')
+      .eq('citizen_id', user.id)
+      .maybeSingle()
+    
+    // If profile doesn't exist, create it
+    if (!existingProfile) {
+      const metadata = user.user_metadata || {}
+      const { error: insertError } = await supabase.from('citizens').insert([{
+        citizen_id: user.id,
+        name: metadata.name || user.email?.split('@')[0] || 'User',
+        email: user.email,
+        ward: metadata.ward || 'Ward 1',
+        password_hash: 'supabase_auth_managed' // Dummy value since Supabase handles auth
+      }])
+      
+      if (insertError) {
+        console.error('Failed to create citizen profile:', insertError)
+        throw new Error(`Failed to create user profile: ${insertError.message}`)
+      }
+      
+      console.log('✅ Created citizen profile for user:', user.id)
+    }
+  } catch (error) {
+    console.error('Error in ensureCitizenProfile:', error)
+    throw error
+  }
+  
+  return user
+}
+
 // Auth API
 export const authAPI = {
   async signUp(email, password, userData) {
@@ -101,6 +142,9 @@ export const issuesAPI = {
   },
 
   async createIssue(issueData) {
+    // Ensure citizen profile exists first
+    await ensureCitizenProfile()
+
     const { data, error } = await supabase
       .from('issues')
       .insert([issueData])
@@ -138,8 +182,8 @@ export const issuesAPI = {
 // Votes API
 export const votesAPI = {
   async castVote(issueId, voteType) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
+    // Ensure citizen profile exists first
+    const user = await ensureCitizenProfile()
 
     // Check if user already voted
     const { data: existingVote } = await supabase
@@ -147,7 +191,7 @@ export const votesAPI = {
       .select('*')
       .eq('issue_id', issueId)
       .eq('citizen_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (existingVote) {
       // Update existing vote
@@ -211,8 +255,8 @@ export const votesAPI = {
 // Feedbacks API
 export const feedbacksAPI = {
   async addFeedback(issueId, message) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
+    // Ensure citizen profile exists first
+    const user = await ensureCitizenProfile()
 
     const { data, error } = await supabase
       .from('feedbacks')

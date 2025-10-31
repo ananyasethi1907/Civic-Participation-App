@@ -6,7 +6,23 @@ const Sidebar = () => {
   const { user } = useAuth()
   const location = useLocation()
 
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/')
+  const isActive = (path) => {
+    // Exact match for most routes
+    if (path === location.pathname) return true
+    
+    // For /issues, only match if it's exactly /issues (not /issues/create or /issues/:id)
+    if (path === '/issues') {
+      return location.pathname === '/issues'
+    }
+    
+    // For /issues/create, exact match only
+    if (path === '/issues/create') {
+      return location.pathname === '/issues/create'
+    }
+    
+    // For other routes, check if pathname starts with the path followed by /
+    return location.pathname.startsWith(path + '/')
+  }
 
   const menuItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },

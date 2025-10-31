@@ -17,8 +17,34 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null)
+      
+      // If user exists, ensure citizen profile exists
+      if (session?.user) {
+        try {
+          const { data: existingProfile, error: profileCheckError } = await supabase
+            .from('citizens')
+            .select('*')
+            .eq('citizen_id', session.user.id)
+            .single()
+          
+          // If profile doesn't exist, create it
+          if (profileCheckError && profileCheckError.code === 'PGRST116') {
+            const metadata = session.user.user_metadata || {}
+            await supabase.from('citizens').insert([{
+              citizen_id: session.user.id,
+              name: metadata.name || session.user.email.split('@')[0],
+              email: session.user.email,
+              ward: metadata.ward || 'Ward 1'
+            }])
+            console.log('Created citizen profile for existing session:', session.user.id)
+          }
+        } catch (profileError) {
+          console.error('Error checking/creating citizen profile:', profileError)
+        }
+      }
+      
       setLoading(false)
     })
 
@@ -65,6 +91,32 @@ export const AuthProvider = ({ children }) => {
     })
     if (error) throw error
     setUser(data.user)
+    
+    // Check if citizen profile exists, if not create it
+    if (data.user) {
+      try {
+        const { data: existingProfile, error: profileCheckError } = await supabase
+          .from('citizens')
+          .select('*')
+          .eq('citizen_id', data.user.id)
+          .single()
+        
+        // If profile doesn't exist, create it
+        if (profileCheckError && profileCheckError.code === 'PGRST116') {
+          const metadata = data.user.user_metadata || {}
+          await supabase.from('citizens').insert([{
+            citizen_id: data.user.id,
+            name: metadata.name || data.user.email.split('@')[0],
+            email: data.user.email,
+            ward: metadata.ward || 'Ward 1'
+          }])
+          console.log('Created citizen profile for user:', data.user.id)
+        }
+      } catch (profileError) {
+        console.error('Error checking/creating citizen profile:', profileError)
+      }
+    }
+    
     return data
   }
 
