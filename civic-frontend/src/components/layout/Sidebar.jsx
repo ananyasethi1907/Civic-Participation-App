@@ -6,6 +6,14 @@ const Sidebar = () => {
   const { user } = useAuth()
   const location = useLocation()
 
+  // Helper function to trim email for display
+  const getTrimmedEmail = (email) => {
+    if (!email) return 'Guest'
+    const [username, domain] = email.split('@')
+    if (username.length <= 10) return username
+    return username.substring(0, 10) + '...'
+  }
+
   const isActive = (path) => {
     // Exact match for most routes
     if (path === location.pathname) return true
@@ -43,7 +51,7 @@ const Sidebar = () => {
           <div>
             <div className="font-semibold text-secondary-900 dark:text-white">CivicApp</div>
             <div className="text-xs text-secondary-600 dark:text-gray-400 truncate max-w-[160px]">
-              {user?.email || 'Guest'}
+              {getTrimmedEmail(user?.email)}
             </div>
           </div>
         </div>

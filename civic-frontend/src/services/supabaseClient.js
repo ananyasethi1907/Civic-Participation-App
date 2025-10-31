@@ -143,11 +143,14 @@ export const issuesAPI = {
 
   async createIssue(issueData) {
     // Ensure citizen profile exists first
-    await ensureCitizenProfile()
+    const user = await ensureCitizenProfile()
 
     const { data, error } = await supabase
       .from('issues')
-      .insert([issueData])
+      .insert([{
+        ...issueData,
+        created_by: user.id  // Add the user ID
+      }])
       .select()
       .single()
 

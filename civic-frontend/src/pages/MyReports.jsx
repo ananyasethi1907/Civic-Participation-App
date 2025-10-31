@@ -1,33 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useUserIssues } from '../hooks/useIssues'
 import IssueCard from '../components/ui/IssueCard'
-import apiService from '../services/api'
 import Sidebar from '../components/layout/Sidebar'
 
 const MyReports = () => {
   const { user } = useAuth()
-  const [issues, setIssues] = useState([])
-  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-
-  useEffect(() => {
-    fetchMyIssues()
-  }, [])
-
-  const fetchMyIssues = async () => {
-    try {
-      // This would need to be implemented in the API
-      const allIssues = await apiService.getIssues()
-      // Filter by current user (this should be done on backend)
-      const myIssues = allIssues.filter(issue => issue.created_by === user?.id)
-      setIssues(myIssues)
-    } catch (error) {
-      console.error('Failed to fetch my issues:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: issues = [], isLoading } = useUserIssues(user?.id)
 
   const filteredIssues = issues.filter(issue => {
     if (filter === 'all') return true
@@ -39,7 +20,7 @@ const MyReports = () => {
     return issues.filter(issue => issue.status.toLowerCase() === status.toLowerCase()).length
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="app-grid">
         <Sidebar />

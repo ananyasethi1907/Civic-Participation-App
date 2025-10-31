@@ -9,6 +9,14 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
 
+  // Helper function to trim email for display
+  const getTrimmedEmail = (email) => {
+    if (!email) return 'User'
+    const [username, domain] = email.split('@')
+    if (username.length <= 12) return username
+    return username.substring(0, 12) + '...'
+  }
+
   const handleLogout = async () => {
     await signOut()
     navigate('/')
@@ -63,7 +71,7 @@ const Navbar = () => {
                 </Link>
                 <div className="flex items-center space-x-3">
                   <span className="text-secondary-600 dark:text-gray-300 text-sm hidden xl:block">
-                    {user?.email}
+                    {getTrimmedEmail(user?.email)}
                   </span>
                   <button 
                     onClick={handleLogout}
@@ -164,7 +172,7 @@ const Navbar = () => {
                     </Link>
                     <div className="flex flex-col space-y-2 px-2 py-1">
                       <span className="text-secondary-600 dark:text-gray-300 text-sm">
-                        {user?.email}
+                        {getTrimmedEmail(user?.email)}
                       </span>
                       <button 
                         onClick={handleLogout}

@@ -35,7 +35,13 @@ export const useCreateIssue = () => {
       let imageUrl = null
       
       if (imageFile) {
-        imageUrl = await storageAPI.uploadImage(imageFile)
+        try {
+          imageUrl = await storageAPI.uploadImage(imageFile)
+        } catch (error) {
+          console.warn('Image upload failed, continuing without image:', error)
+          // Continue without image if upload fails
+          toast.error('Image upload failed, but issue will be created without image')
+        }
       }
       
       return issuesAPI.createIssue({
