@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from '../services/supabaseClient'
 
 const AuthContext = createContext()
 
@@ -12,50 +13,79 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [token, setToken] = useState(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (token) {
-      // Decode token to get user info (simplified)
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const signUp = async (email, password, metadata) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+        emailRedirectTo: window.location.origin
+      }
+    })
+    if (error) throw error
+    
+    // If user is created and confirmed, create citizen profile
+    if (data.user && data.user.confirmed_at) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        setUser({
-          id: payload.sub,
-          email: payload.email
-        })
-      } catch (error) {
-        console.error('Invalid token:', error)
-        logout()
+        await supabase.from('citizens').insert([{
+          citizen_id: data.user.id,
+          name: metadata.name,
+          email: email,
+          ward: metadata.ward
+        }])
+      } catch (profileError) {
+        console.error('Error creating citizen profile:', profileError)
       }
     }
-    setLoading(false)
-  }, [token])
-
-  const login = (token, userData) => {
-    localStorage.setItem('token', token)
-    setToken(token)
-    setUser(userData)
+    
+    return data
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    setToken(null)
+  const signIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
+    if (error) throw error
+    setUser(data.user)
+    return data
+  }
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
     setUser(null)
   }
 
   const value = {
     user,
-    token,
-    login,
-    logout,
+    signUp,
+    signIn,
+    signOut,
     loading,
     isAuthenticated: !!user
   }
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   )
 }

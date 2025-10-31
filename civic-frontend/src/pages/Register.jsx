@@ -29,13 +29,17 @@ const Register = () => {
     setError('')
 
     try {
-      await signUp(formData.email, formData.password, {
+      const { data } = await signUp(formData.email, formData.password, {
         name: formData.name,
         ward: formData.ward
       })
+      
+      // Show success message
+      alert('Registration successful! Please check your email to verify your account.')
       navigate('/login')
     } catch (error) {
-      setError('Registration failed. Please try again.')
+      console.error('Registration error:', error)
+      setError(error.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
