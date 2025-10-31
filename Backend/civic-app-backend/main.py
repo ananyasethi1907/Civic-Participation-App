@@ -1,13 +1,11 @@
-from fastapi import FastAPI, HTTPException, Depends, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from auth import AuthService, get_current_user
 from database import get_supabase_client
 from services import civic_service
-from realtime_service import realtime_service
 from typing import Optional
 import uuid
-import asyncio
 
 app = FastAPI(title="Civic Participation API", version="1.0.0")
 
@@ -94,10 +92,6 @@ async def create_issue(issue_data: IssueCreate, current_user: dict = Depends(get
         location=issue_data.location,
         image_url=issue_data.image_url
     )
-    
-    # Broadcast new issue to admins
-    await realtime_service.broadcast_new_issue(issue)
-    
     return issue
 
 @app.get("/issues")
@@ -113,15 +107,7 @@ async def get_issue(issue_id: str):
 @app.put("/issues/{issue_id}/status")
 async def update_issue_status(issue_id: str, status_data: IssueStatusUpdate, current_user: dict = Depends(get_current_user)):
     """Update issue status (protected route)"""
-    # Get issue before update to find creator
-    issue_before = await civic_service.get_issue_by_id(issue_id)
-    
-    # Update status
     updated_issue = await civic_service.update_issue_status(issue_id, status_data.status)
-    
-    # Notify issue creator about status change
-    await realtime_service.notify_status_change(issue_before["created_by"], updated_issue)
-    
     return updated_issue
 
 @app.get("/issues/category/{category}")
@@ -142,11 +128,6 @@ async def cast_vote(vote_data: VoteCreate, current_user: dict = Depends(get_curr
         citizen_id=current_user["user_id"],
         vote_type=vote_data.vote_type
     )
-    
-    # Get updated vote counts and broadcast
-    vote_counts = await civic_service.get_vote_counts(vote_data.issue_id)
-    await realtime_service.broadcast_vote_update(vote_data.issue_id, vote_counts)
-    
     return vote_result
 
 @app.delete("/votes/{issue_id}")
@@ -184,29 +165,6 @@ async def mark_notification_read(notification_id: str, current_user: dict = Depe
     """Mark notification as read (protected route)"""
     return await civic_service.mark_notification_read(notification_id, current_user["user_id"])
 
-# WebSocket endpoints
-@app.websocket("/ws/admin")
-async def websocket_admin(websocket: WebSocket):
-    """WebSocket endpoint for admin real-time updates"""
-    await realtime_service.connect_admin(websocket)
-    try:
-        while True:
-            # Keep connection alive
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        await realtime_service.disconnect(websocket)
-
-@app.websocket("/ws/citizen/{citizen_id}")
-async def websocket_citizen(websocket: WebSocket, citizen_id: str):
-    """WebSocket endpoint for citizen notifications"""
-    await realtime_service.connect_citizen(websocket, citizen_id)
-    try:
-        while True:
-            # Keep connection alive
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        await realtime_service.disconnect(websocket)
-
 @app.get("/")
 async def root():
     """API health check"""
@@ -214,4 +172,4 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
