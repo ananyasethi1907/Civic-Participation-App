@@ -92,8 +92,9 @@ class SimpleTable:
         if response.status_code == 201:
             return SimpleResponse(response.json())
         else:
-            print(f"Insert failed: {response.status_code} - {response.text}")
-            return SimpleResponse([])
+            error_msg = f"Insert failed: {response.status_code} - {response.text}"
+            print(error_msg)
+            raise Exception(error_msg)
     
     def update(self, data):
         url = self.base_url

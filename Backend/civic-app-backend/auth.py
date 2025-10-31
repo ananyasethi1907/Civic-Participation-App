@@ -78,7 +78,7 @@ class AuthService:
                 "ward": ward
             }
             
-            response = self.supabase.table("citizens").insert(citizen_data).execute()
+            response = self.supabase.table("citizens").insert(citizen_data)
             
             if response.data:
                 # Generate simple JWT token
