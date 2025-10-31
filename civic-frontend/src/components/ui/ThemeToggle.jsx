@@ -9,7 +9,7 @@ const ThemeToggle = ({ className = '' }) => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
-      className={`p-2 rounded-lg bg-secondary-100 hover:bg-secondary-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors ${className}`}
+      className={`p-2 rounded-lg bg-secondary-100 hover:bg-secondary-200 dark:bg-gray-700 dark:hover:bg-gray-600 ring-1 ring-secondary-200 dark:ring-gray-600 shadow-sm hover:shadow transition-all ${className}`}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
       <motion.div

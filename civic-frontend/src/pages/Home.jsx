@@ -8,52 +8,57 @@ const Home = () => {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center py-12 sm:py-16 lg:py-20">
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-secondary-900 dark:text-white mb-4 sm:mb-6"
-        >
-          Make Your Voice Heard
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg sm:text-xl text-secondary-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
-        >
-          Report civic issues, vote on community problems, and track progress 
-          in your neighborhood. Together, we can build better communities.
-        </motion.p>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
-        >
-          {isAuthenticated ? (
-            <>
-              <Link to="/issues/create" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
-                Report an Issue
-              </Link>
-              <Link to="/issues" className="btn-secondary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
-                Browse Issues
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/register" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
-                Get Started
-              </Link>
-              <Link to="/issues" className="btn-secondary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
-                View Issues
-              </Link>
-            </>
-          )}
-        </motion.div>
-      </div>
+      <section className="hero-section">
+        <div className="hero-surface">
+          <span className="hero-blob -left-10 -top-10 bg-primary-300/30 dark:bg-primary-600/20" />
+          <span className="hero-blob -right-10 -bottom-10 bg-primary-300/30 dark:bg-primary-600/20" />
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-secondary-900 dark:text-white mb-4 sm:mb-6"
+          >
+            Make Your Voice Heard
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg sm:text-xl text-secondary-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4"
+          >
+            Report civic issues, vote on community problems, and track progress
+            in your neighborhood. Together, we can build better communities.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
+          >
+            {isAuthenticated ? (
+              <>
+                <Link to="/issues/create" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
+                  Report an Issue
+                </Link>
+                <Link to="/issues" className="btn-secondary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
+                  Browse Issues
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/register" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
+                  Get Started
+                </Link>
+                <Link to="/issues" className="btn-secondary text-base sm:text-lg px-6 sm:px-8 py-2 sm:py-3">
+                  View Issues
+                </Link>
+              </>
+            )}
+          </motion.div>
+        </div>
+      </section>
 
       {/* Features Section */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 py-12 sm:py-16 px-4">
@@ -101,7 +106,7 @@ const Home = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.8 }}
-        className="bg-primary-50 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 text-center mx-4"
+        className="bg-primary-50 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 text-center mx-4 ring-1 ring-secondary-200 dark:ring-gray-700"
       >
         <h2 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-white mb-6 sm:mb-8">
           Community Impact

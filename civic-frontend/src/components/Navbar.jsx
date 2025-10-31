@@ -20,7 +20,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-secondary-200 dark:border-gray-700 sticky top-0 z-50">
+    <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/70 shadow-sm border-b border-secondary-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
@@ -36,7 +36,7 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-6">
             <Link 
               to="/issues" 
-              className="text-secondary-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors"
+              className="nav-link"
             >
               Issues
             </Link>
@@ -45,13 +45,13 @@ const Navbar = () => {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="text-secondary-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors"
+                  className="nav-link"
                 >
                   Dashboard
                 </Link>
                 <Link 
                   to="/my-reports" 
-                  className="text-secondary-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors"
+                  className="nav-link"
                 >
                   My Reports
                 </Link>
@@ -77,7 +77,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-3">
                 <Link 
                   to="/login" 
-                  className="text-secondary-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium"
+                  className="nav-link"
                 >
                   Login
                 </Link>
