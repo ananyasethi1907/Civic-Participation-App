@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import ReportForm from '../components/forms/ReportForm'
+import Sidebar from '../components/layout/Sidebar'
 
 const CreateIssue = () => {
   const { isAuthenticated } = useAuth()
@@ -12,7 +13,9 @@ const CreateIssue = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="app-grid fade-in">
+      <Sidebar />
+      <div className="max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-secondary-900 mb-2">
           Report an Issue
@@ -24,6 +27,7 @@ const CreateIssue = () => {
 
       <div className="card">
         <ReportForm />
+      </div>
       </div>
     </div>
   )

@@ -15,6 +15,8 @@ import Issues from './pages/Issues'
 import CreateIssue from './pages/CreateIssue'
 import IssueDetail from './pages/IssueDetail'
 import MyReports from './pages/MyReports'
+import Notifications from './pages/Notifications'
+import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
@@ -48,6 +50,16 @@ function App() {
                     <Route path="/my-reports" element={
                       <ProtectedRoute>
                         <MyReports />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/notifications" element={
+                      <ProtectedRoute>
+                        <Notifications />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/profile" element={
+                      <ProtectedRoute>
+                        <Profile />
                       </ProtectedRoute>
                     } />
                     

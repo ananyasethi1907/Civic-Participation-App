@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import apiService from '../services/api'
+import Sidebar from '../components/layout/Sidebar'
 
 const IssueDetail = () => {
   const { id } = useParams()
@@ -80,23 +81,31 @@ const IssueDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="app-grid">
+        <Sidebar />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
       </div>
     )
   }
 
   if (!issue) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-secondary-900 mb-2">Issue not found</h2>
-        <p className="text-secondary-600">The issue you're looking for doesn't exist.</p>
+      <div className="app-grid">
+        <Sidebar />
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-secondary-900 mb-2">Issue not found</h2>
+          <p className="text-secondary-600">The issue you're looking for doesn't exist.</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="app-grid fade-in">
+      <Sidebar />
+      <div className="max-w-4xl mx-auto">
       <div className="card mb-8">
         {/* Issue Header */}
         <div className="flex items-start justify-between mb-6">
@@ -230,6 +239,7 @@ const IssueDetail = () => {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

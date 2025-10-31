@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useIssues } from '../hooks/useIssues'
 import IssueCard from '../components/ui/IssueCard'
+import Sidebar from '../components/layout/Sidebar'
 
 const Issues = () => {
   const [filter, setFilter] = useState('all')
@@ -25,14 +26,19 @@ const Issues = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="app-grid">
+        <Sidebar />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="app-grid fade-in">
+      <Sidebar />
+      <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-secondary-900">
           Community Issues
@@ -104,6 +110,7 @@ const Issues = () => {
           ))}
         </motion.div>
       )}
+      </div>
     </div>
   )
 }

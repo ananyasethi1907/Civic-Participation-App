@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import IssueCard from '../components/ui/IssueCard'
 import apiService from '../services/api'
+import Sidebar from '../components/layout/Sidebar'
 
 const MyReports = () => {
   const { user } = useAuth()
@@ -40,14 +41,19 @@ const MyReports = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="app-grid">
+        <Sidebar />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="app-grid fade-in">
+      <Sidebar />
+      <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-secondary-900 mb-2">
@@ -136,6 +142,7 @@ const MyReports = () => {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }
