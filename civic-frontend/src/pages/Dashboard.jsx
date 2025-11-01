@@ -2,24 +2,13 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
-import { useUserIssues } from '../hooks/useIssues'
 import Sidebar from '../components/layout/Sidebar'
 
 const Dashboard = () => {
   const { user } = useAuth()
-  const { data: userIssues = [] } = useUserIssues(user?.id)
   const [profile, setProfile] = useState(null)
   const [notifications, setNotifications] = useState([])
-  const [stats, setStats] = useState({
-    votesCast: 0,
-    commentsMade: 0
-  })
   const [loading, setLoading] = useState(true)
-
-  // Debug: Log userIssues when they change
-  useEffect(() => {
-    console.log('📋 User Issues updated:', userIssues?.length || 0, userIssues)
-  }, [userIssues])
 
   // Truncate email if too long
   const truncateEmail = (email, maxLength = 25) => {
@@ -39,8 +28,6 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      console.log('🔍 Fetching dashboard data for user:', user.id)
-      
       // Fetch profile from Supabase citizens table
       const { data: profileData, error: profileError } = await supabase
         .from('citizens')
@@ -49,7 +36,6 @@ const Dashboard = () => {
         .single()
 
       if (profileError) throw profileError
-      console.log('✅ Profile data:', profileData)
 
       // Fetch notifications from Supabase
       const { data: notificationsData, error: notifError } = await supabase
@@ -58,34 +44,11 @@ const Dashboard = () => {
         .eq('citizen_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10)
-      
-      console.log('📬 Notifications:', notificationsData?.length || 0)
-
-      // Fetch activity stats (votes and comments only - issues count comes from useUserIssues hook)
-      const [votesCount, commentsCount] = await Promise.all([
-        // Count votes cast by this user
-        supabase
-          .from('votes')
-          .select('vote_id', { count: 'exact', head: true })
-          .eq('citizen_id', user.id),
-        
-        // Count feedbacks/comments made by this user
-        supabase
-          .from('feedbacks')
-          .select('feedback_id', { count: 'exact', head: true })
-          .eq('citizen_id', user.id)
-      ])
-
-      console.log('📊 Stats - Votes:', votesCount.count, 'Comments:', commentsCount.count, 'Issues:', userIssues.length)
 
       setProfile(profileData)
       setNotifications(notificationsData || [])
-      setStats({
-        votesCast: votesCount.count || 0,
-        commentsMade: commentsCount.count || 0
-      })
     } catch (error) {
-      console.error('❌ Failed to fetch dashboard data:', error)
+      console.error('Failed to fetch dashboard data:', error)
     } finally {
       setLoading(false)
     }
@@ -177,15 +140,15 @@ const Dashboard = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Issues Reported</span>
-                <span className="font-semibold text-secondary-900">{userIssues.length}</span>
+                <span className="font-semibold text-secondary-900">0</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Votes Cast</span>
-                <span className="font-semibold text-secondary-900">{stats.votesCast}</span>
+                <span className="font-semibold text-secondary-900">0</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Comments Made</span>
-                <span className="font-semibold text-secondary-900">{stats.commentsMade}</span>
+                <span className="font-semibold text-secondary-900">0</span>
               </div>
             </div>
           </div>
