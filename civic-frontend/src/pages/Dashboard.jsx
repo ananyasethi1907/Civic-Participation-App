@@ -2,12 +2,18 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
+import { useUserIssues } from '../hooks/useIssues'
 import Sidebar from '../components/layout/Sidebar'
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const { data: userIssues = [] } = useUserIssues(user?.id)
   const [profile, setProfile] = useState(null)
   const [notifications, setNotifications] = useState([])
+  const [stats, setStats] = useState({
+    votesCast: 0,
+    commentsMade: 0
+  })
   const [loading, setLoading] = useState(true)
 
   // Truncate email if too long
@@ -45,8 +51,27 @@ const Dashboard = () => {
         .order('created_at', { ascending: false })
         .limit(10)
 
+      // Fetch activity stats (votes and comments only - issues count comes from useUserIssues hook)
+      const [votesCount, commentsCount] = await Promise.all([
+        // Count votes cast by this user
+        supabase
+          .from('votes')
+          .select('vote_id', { count: 'exact', head: true })
+          .eq('citizen_id', user.id),
+        
+        // Count feedbacks/comments made by this user
+        supabase
+          .from('feedbacks')
+          .select('feedback_id', { count: 'exact', head: true })
+          .eq('citizen_id', user.id)
+      ])
+
       setProfile(profileData)
       setNotifications(notificationsData || [])
+      setStats({
+        votesCast: votesCount.count || 0,
+        commentsMade: commentsCount.count || 0
+      })
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
@@ -140,15 +165,15 @@ const Dashboard = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Issues Reported</span>
-                <span className="font-semibold text-secondary-900">0</span>
+                <span className="font-semibold text-secondary-900">{userIssues.length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Votes Cast</span>
-                <span className="font-semibold text-secondary-900">0</span>
+                <span className="font-semibold text-secondary-900">{stats.votesCast}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-secondary-600">Comments Made</span>
-                <span className="font-semibold text-secondary-900">0</span>
+                <span className="font-semibold text-secondary-900">{stats.commentsMade}</span>
               </div>
             </div>
           </div>
