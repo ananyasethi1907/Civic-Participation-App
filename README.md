@@ -404,6 +404,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👥 Authors
 
 - **Ananya Sethi** - [@ananyasethi1907](https://github.com/ananyasethi1907)
+- **Sarvesh Thakur** - [@Sp0ntanum](https://github.com/Sp0ntanum)
+- **Shaurya Vrat Shukla** - [@Shaurya-thinker](https://github.com/Shaurya-thinker)
+- **Panshul Srivastava** - [@Panshul-cse](https://github.com/Panshul-cse)
 
 ## 🙏 Acknowledgments
 
@@ -413,11 +416,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Tailwind CSS for the utility-first styling approach
 - All contributors and users of this application
 
-## 📞 Support
-
-For support, email support@civicapp.com or open an issue on GitHub.
-
-## 🔮 Roadmap
+##  Roadmap
 
 - [ ] Mobile app (React Native)
 - [ ] Email notifications
