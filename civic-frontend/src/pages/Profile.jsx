@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { User, Mail, MapPin, Calendar, Award, FileText } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import apiService from '../services/api'
+import { supabase } from '../services/supabaseClient'
+import { useUserIssues } from '../hooks/useIssues'
 import Sidebar from '../components/layout/Sidebar'
 
 const Profile = () => {
   const { user, signOut } = useAuth()
+  const { data: userIssues = [] } = useUserIssues(user?.id)
   const [profile, setProfile] = useState(null)
   const [stats, setStats] = useState({
-    totalIssues: 0,
     resolvedIssues: 0,
     totalVotes: 0,
     totalFeedback: 0,
@@ -23,12 +24,22 @@ const Profile = () => {
   })
 
   useEffect(() => {
-    fetchProfile()
-  }, [])
+    if (user) {
+      fetchProfile()
+    }
+  }, [user])
 
   const fetchProfile = async () => {
     try {
-      const profileData = await apiService.getProfile()
+      // Fetch profile from Supabase citizens table
+      const { data: profileData, error: profileError } = await supabase
+        .from('citizens')
+        .select('*')
+        .eq('citizen_id', user.id)
+        .single()
+
+      if (profileError) throw profileError
+
       setProfile(profileData)
       setFormData({
         name: profileData.name || '',
@@ -36,12 +47,30 @@ const Profile = () => {
         phone: profileData.phone || '',
       })
       
-      // Fetch user stats (mock for now)
+      // Fetch real user stats from Supabase
+      const [votesCount, commentsCount] = await Promise.all([
+        // Count votes cast by this user
+        supabase
+          .from('votes')
+          .select('vote_id', { count: 'exact', head: true })
+          .eq('citizen_id', user.id),
+        
+        // Count feedbacks/comments made by this user
+        supabase
+          .from('feedbacks')
+          .select('feedback_id', { count: 'exact', head: true })
+          .eq('citizen_id', user.id)
+      ])
+
+      // Count resolved issues from userIssues
+      const resolvedCount = userIssues.filter(
+        issue => issue.status.toLowerCase() === 'resolved'
+      ).length
+
       setStats({
-        totalIssues: 12,
-        resolvedIssues: 8,
-        totalVotes: 45,
-        totalFeedback: 23,
+        resolvedIssues: resolvedCount,
+        totalVotes: votesCount.count || 0,
+        totalFeedback: commentsCount.count || 0,
       })
     } catch (error) {
       console.error('Failed to fetch profile:', error)
@@ -214,7 +243,7 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-secondary-600">Issues Reported</span>
-                  <span className="font-bold text-secondary-900">{stats.totalIssues}</span>
+                  <span className="font-bold text-secondary-900">{userIssues.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-secondary-600">Resolved</span>

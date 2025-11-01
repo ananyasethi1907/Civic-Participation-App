@@ -171,13 +171,18 @@ export const issuesAPI = {
   },
 
   async getUserIssues(userId) {
+    console.log('🔎 getUserIssues called with userId:', userId)
     const { data, error } = await supabase
       .from('issues')
       .select('*')
       .eq('created_by', userId)
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ getUserIssues error:', error)
+      throw error
+    }
+    console.log('✅ getUserIssues returned:', data?.length || 0, 'issues')
     return data
   }
 }
